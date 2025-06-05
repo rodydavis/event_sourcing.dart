@@ -129,10 +129,20 @@ class _PosExampleState extends State<PosExample> {
     final priceController = TextEditingController(
       text: isEdit ? product['price'].toString() : '',
     );
+
+    // get inventory
+    final db = widget.store.db;
+    var productId = isEdit ? product['id'] : null;
+    final inventory =
+        isEdit
+            ? db.select('SELECT quantity FROM inventory WHERE product_id = ?', [
+              productId,
+            ])
+            : [];
     final inventoryController = TextEditingController(
       text:
-          isEdit && product.containsKey('quantity')
-              ? product['quantity'].toString()
+          isEdit && inventory.isNotEmpty
+              ? (inventory.first['quantity'] as int? ?? 0).toString()
               : '',
     );
 
@@ -177,25 +187,18 @@ class _PosExampleState extends State<PosExample> {
                     (quantity != null || !isEdit)) {
                   if (isEdit) {
                     if (name != product['name']) {
-                      _dispatchEvent(
-                        UpdateProductNameEvent(product['id'] as int, name),
-                      );
+                      _dispatchEvent(UpdateProductNameEvent(productId, name));
                     }
                     if (price != product['price']) {
-                      _dispatchEvent(
-                        UpdateProductPriceEvent(product['id'] as int, price),
-                      );
+                      _dispatchEvent(UpdateProductPriceEvent(productId, price));
                     }
                     if (quantity != null && product.containsKey('id')) {
                       _dispatchEvent(
-                        SetProductInventoryEvent(
-                          product['id'] as int,
-                          quantity,
-                        ),
+                        SetProductInventoryEvent(productId, quantity),
                       );
                     }
                   } else {
-                    final productId = DateTime.now().millisecondsSinceEpoch;
+                    productId = DateTime.now().millisecondsSinceEpoch;
                     _dispatchEvent(AddProductEvent(productId, name, price));
                     if (quantity != null) {
                       _dispatchEvent(
@@ -220,10 +223,19 @@ class _PosExampleState extends State<PosExample> {
     final nameController = TextEditingController(
       text: isEdit ? customer['name'] as String : '',
     );
+    var customerId = isEdit ? customer['id'] : null;
+    // get balance
+    final db = widget.store.db;
+    final balance =
+        isEdit
+            ? db.select('SELECT balance FROM balances WHERE customer_id = ?', [
+              customerId,
+            ])
+            : [];
     final balanceController = TextEditingController(
       text:
-          isEdit && customer.containsKey('balance')
-              ? customer['balance'].toString()
+          isEdit && balance.isNotEmpty
+              ? (balance.first['balance'] as num? ?? 0.0).toString()
               : '',
     );
     await showDialog(
@@ -257,20 +269,15 @@ class _PosExampleState extends State<PosExample> {
                 if (name.isNotEmpty && (balance != null || !isEdit)) {
                   if (isEdit) {
                     if (name != customer['name']) {
-                      _dispatchEvent(
-                        UpdateCustomerEvent(customer['id'] as int, name),
-                      );
+                      _dispatchEvent(UpdateCustomerEvent(customerId, name));
                     }
                     if (balance != null && customer.containsKey('id')) {
                       _dispatchEvent(
-                        UpdateCustomerBalanceEvent(
-                          customer['id'] as int,
-                          balance,
-                        ),
+                        UpdateCustomerBalanceEvent(customerId, balance),
                       );
                     }
                   } else {
-                    final customerId = DateTime.now().millisecondsSinceEpoch;
+                    customerId = DateTime.now().millisecondsSinceEpoch;
                     _dispatchEvent(AddCustomerEvent(customerId, name));
                     if (balance != null) {
                       _dispatchEvent(
