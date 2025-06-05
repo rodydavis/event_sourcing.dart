@@ -1,11 +1,14 @@
 /// Counter Example App
 ///
 /// This widget demonstrates a simple event-sourced counter with increment, decrement, reset, and event history features.
+library;
+
+import 'package:event_sourcing/event_sourcing_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:signals/signals_flutter.dart';
+
 import 'store.dart';
 import 'events.dart';
-import 'history.dart';
 
 /// The main counter example widget.
 class CounterExample extends StatefulWidget {
@@ -34,21 +37,7 @@ class _CounterExampleState extends State<CounterExample> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Counter Example'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.restore),
-            tooltip: 'Event History',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EventHistoryScreen(store: widget.store),
-                  fullscreenDialog: true,
-                ),
-              );
-            },
-          ),
-        ],
+        actions: [EventHistoryScreen.buildIconButton(context, widget.store)],
       ),
       body: Watch.builder(
         builder: (context) {

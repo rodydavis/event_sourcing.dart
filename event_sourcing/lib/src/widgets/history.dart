@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:event_sourcing/event_sourcing.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import 'store.dart'; // Assuming your PosStore is in store.dart
 
-class PosEventHistoryScreen extends StatelessWidget {
-  const PosEventHistoryScreen({super.key, required this.store});
+class EventHistoryScreen extends StatelessWidget {
+  const EventHistoryScreen({super.key, required this.store});
 
-  final PosStore store;
+  final ViewStore store;
+
+  static Widget buildIconButton(BuildContext context, ViewStore store) {
+    return IconButton(
+      icon: const Icon(Icons.restore),
+      tooltip: 'Event History',
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EventHistoryScreen(store: store),
+            fullscreenDialog: true,
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

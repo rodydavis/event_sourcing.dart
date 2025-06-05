@@ -2,11 +2,11 @@
 ///
 /// This widget demonstrates a simple point-of-sale system using event sourcing.
 /// It allows management of customers, products, and orders, and supports event history, refunds, and order restoration.
+import 'package:event_sourcing/event_sourcing_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:sqlite3/common.dart' show ResultSet;
 import 'store.dart';
 import 'events.dart';
-import 'history.dart';
 
 /// The main POS example widget.
 class PosExample extends StatefulWidget {
@@ -107,7 +107,9 @@ class _PosExampleState extends State<PosExample> {
 
   /// Restores a refunded order by ID.
   void _restoreOrder(int orderId) {
-    widget.store.db.execute('UPDATE orders SET refunded = 0 WHERE id = ?;', [orderId]);
+    widget.store.db.execute('UPDATE orders SET refunded = 0 WHERE id = ?;', [
+      orderId,
+    ]);
     _dispatchEvent(CompleteOrderEvent(orderId));
   }
 
@@ -418,20 +420,7 @@ class _PosExampleState extends State<PosExample> {
               tooltip: 'Add Product',
               onPressed: () => _showProductDialog(),
             ),
-          IconButton(
-            icon: const Icon(Icons.history),
-            tooltip: 'Event History',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => PosEventHistoryScreen(store: widget.store),
-                  fullscreenDialog: true,
-                ),
-              );
-            },
-          ),
+          EventHistoryScreen.buildIconButton(context, widget.store),
         ],
       ),
       body: switch (_selectedNavIndex) {
