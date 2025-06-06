@@ -64,16 +64,20 @@ graph TD
 
 ### Event Store
 
+#### Event Store (Write Optimized)
+
 The `EventStore` is responsible for persisting and replaying all events. It provides:
 - Methods to add, retrieve, and clear events
 - Event processing and streaming
 - Support for restoring state to a specific event
-
-### View Store
-
-The `ViewStore` is an abstract class that reacts to events and manages the application state. It provides:
-- Initialization and disposal hooks
 - An `onEvent` method to handle each event and update state
 - A `restoreToEvent` method to reset and replay events up to a given point
+
+#### View Store (Read Optimized)
+
+The `ViewStore` is a read-optimized store that provides:
+- Queries to retrieve current state
+- Separation of read and write concerns, allowing for efficient state retrieval without affecting the event store
+- Replaying of events to build the current state
 
 This separation allows for robust, testable, and auditable state management in Flutter apps.
