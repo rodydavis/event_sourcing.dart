@@ -1,10 +1,8 @@
 import 'package:event_sourcing/event_sourcing.dart';
 
-class PosEvent extends Event {
-  static var _hlc = Hlc.now('node1');
-
+class PosEvent extends AutoIncrementEvent {
   PosEvent(String type, [Map<String, Object?> data = const {}])
-    : super(id: _hlc = _hlc.increment(), type: type, data: {...data});
+    : super(type, {...data});
 }
 
 class AddCustomerEvent extends PosEvent {

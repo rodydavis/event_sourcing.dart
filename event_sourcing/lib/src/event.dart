@@ -2,6 +2,18 @@ import 'dart:convert';
 
 import 'hlc.dart';
 
+class AutoIncrementEvent extends Event {
+  static var _hlc = Hlc.now('node1');
+
+  /// The node ID for this event. Used to generate the HLC.
+  set nodeId(String nodeId) {
+    _hlc = Hlc.now(nodeId);
+  }
+
+  AutoIncrementEvent(String type, [Map<String, Object?> data = const {}])
+    : super(id: _hlc = _hlc.increment(), type: type, data: {...data});
+}
+
 /// Represents a domain event with a unique ID (HLC), type, and associated data.
 class Event {
   /// Globally unique identifier for the event (Hybrid Logical Clock).

@@ -1,14 +1,8 @@
 import 'package:event_sourcing/event_sourcing.dart';
 
-class CounterEvent extends Event {
-  static var _hlc = Hlc.now('node1');
-
+class CounterEvent extends AutoIncrementEvent {
   CounterEvent(String type, this.key, [Map<String, Object?> data = const {}])
-    : super(
-        id: _hlc = _hlc.increment(),
-        type: type,
-        data: {'key': key, ...data},
-      );
+    : super(type, data);
 
   final String key;
 }
