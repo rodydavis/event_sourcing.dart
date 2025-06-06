@@ -23,8 +23,6 @@ class JsonFileEventStore extends EventStore {
   final File file;
   final FileSystem fileSystem;
 
-  final _controller = StreamController<Event>.broadcast();
-
   JsonFileEventStore(this.file, this.fileSystem, super.processEvent);
 
   // TODO: Fails when async
@@ -33,10 +31,10 @@ class JsonFileEventStore extends EventStore {
       '${jsonEncode(event.toJson())}\n',
       mode: FileMode.append,
     );
-    if (!fileSystem.isWatchSupported) {
-      // Emit to stream if not using file watch
-      _controller.add(event);
-    }
+    // if (!fileSystem.isWatchSupported) {
+    //   // Emit to stream if not using file watch
+    //   _controller.add(event);
+    // }
   }
 
   @override

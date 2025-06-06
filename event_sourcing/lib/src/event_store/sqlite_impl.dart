@@ -133,7 +133,7 @@ class SqliteEventStore extends EventStore {
   @override
   Future<void> dispose() async {
     await super.dispose();
-    db.dispose();
+    // db.dispose();
   }
 
   Event _eventFromRow(Row row) {

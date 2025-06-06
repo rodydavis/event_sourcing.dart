@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:sqlite3/common.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
 import 'package:event_sourcing/event_sourcing.dart';
@@ -7,16 +8,19 @@ void main() {
   group('SqliteEventStore', () {
     late File tempFile;
     late SqliteEventStore store;
+    late CommonDatabase db;
 
     setUp(() {
       tempFile = File('test_event_store.sqlite');
       if (tempFile.existsSync()) tempFile.deleteSync();
-      store = SqliteEventStore(sqlite3.open(tempFile.path), (_) {});
+      db = sqlite3.open(tempFile.path);
+      store = SqliteEventStore(db, (_) {});
     });
 
     tearDown(() async {
       await store.dispose();
       if (tempFile.existsSync()) tempFile.deleteSync();
+      db.dispose();
     });
 
     test('add and getAll persists to db', () async {
@@ -108,6 +112,33 @@ void main() {
       final allEvents = await store.getAll();
       expect(allEvents.last.version, '2.0.0');
       expect(allEvents.last.data['foo'], 'baz');
+    });
+
+    test('events persist after dispose and reload', () async {
+      // Create and add events
+      final event1 = Event(
+        id: Hlc.now('node1'),
+        type: 'persist1',
+        data: {'foo': 'bar'},
+      );
+      final event2 = Event(
+        id: Hlc.now('node1'),
+        type: 'persist2',
+        data: {'baz': 123},
+      );
+      await store.add(event1);
+      await store.add(event2);
+      // Dispose the store (but not the db file)
+      await store.dispose();
+      // Reopen the store with the same db file
+      final reopenedStore = SqliteEventStore(db, (_) {});
+      final allEvents = await reopenedStore.getAll();
+      expect(allEvents.length, 2);
+      expect(allEvents[0].type, 'persist1');
+      expect(allEvents[0].data['foo'], 'bar');
+      expect(allEvents[1].type, 'persist2');
+      expect(allEvents[1].data['baz'], 123);
+      await reopenedStore.dispose();
     });
   });
 }
