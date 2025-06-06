@@ -44,24 +44,6 @@ A simple key-value event-sourced store. Features:
 
 ## Architecture
 
-### Event Store
-
-The `EventStore` is responsible for persisting and replaying all events. It provides:
-- Methods to add, retrieve, and clear events
-- Event processing and streaming
-- Support for restoring state to a specific event
-
-### View Store
-
-The `ViewStore` is an abstract class that reacts to events and manages the application state. It provides:
-- Initialization and disposal hooks
-- An `onEvent` method to handle each event and update state
-- A `restoreToEvent` method to reset and replay events up to a given point
-
-This separation allows for robust, testable, and auditable state management in Flutter apps.
-
-## Architecture Diagram
-
 ```mermaid
 graph TD
   subgraph reads
@@ -80,4 +62,18 @@ graph TD
   end
 ```
 
-This diagram shows how the Flutter UI interacts with the `ViewStore` for state management, which in turn processes events and interacts with the `EventStore` for persistence and replay. The `EventStore` can use different storage backends (file, SQLite, memory) and streams events back to the UI for history or debugging.
+### Event Store
+
+The `EventStore` is responsible for persisting and replaying all events. It provides:
+- Methods to add, retrieve, and clear events
+- Event processing and streaming
+- Support for restoring state to a specific event
+
+### View Store
+
+The `ViewStore` is an abstract class that reacts to events and manages the application state. It provides:
+- Initialization and disposal hooks
+- An `onEvent` method to handle each event and update state
+- A `restoreToEvent` method to reset and replay events up to a given point
+
+This separation allows for robust, testable, and auditable state management in Flutter apps.
