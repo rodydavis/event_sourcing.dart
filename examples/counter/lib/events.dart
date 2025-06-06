@@ -1,5 +1,4 @@
 import 'package:event_sourcing/event_sourcing.dart';
-import 'package:flutter/material.dart';
 
 class CounterEvent extends Event {
   static var _hlc = Hlc.now('node1');
@@ -40,10 +39,4 @@ class DecrementEvent extends CounterEvent {
     : super('DECREMENT', key, {'value': value});
 
   final int value;
-}
-
-class CounterNotification extends Notification {
-  const CounterNotification(this.event);
-
-  final CounterEvent event;
 }

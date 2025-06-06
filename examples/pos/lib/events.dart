@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:event_sourcing/event_sourcing.dart';
 
 class PosEvent extends Event {
@@ -164,10 +163,4 @@ class RefundOrderEvent extends PosEvent {
   RefundOrderEvent(this.orderId) : super('REFUND_ORDER', {'orderId': orderId});
 
   final int orderId;
-}
-
-class PosNotification extends Notification {
-  const PosNotification(this.event);
-
-  final PosEvent event;
 }

@@ -1,3 +1,4 @@
+import 'package:event_sourcing/event_sourcing_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'store.dart';
@@ -37,11 +38,8 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: NotificationListener<PosNotification>(
-        onNotification: (notification) {
-          store.eventStore.add(notification.event);
-          return true;
-        },
+      home: EventNotificationHandler(
+        eventStore: store.eventStore,
         child: PosExample(store: store),
       ),
     );

@@ -26,11 +26,6 @@ class CounterExample extends StatefulWidget {
 ///
 /// Handles event dispatching and UI updates for the counter demo.
 class _CounterExampleState extends State<CounterExample> {
-  /// Dispatches a [CounterEvent] to the store using notifications.
-  void dispatchEvent(BuildContext context, CounterEvent event) {
-    CounterNotification(event).dispatch(context);
-  }
-
   /// Builds the main scaffold and counter UI.
   @override
   Widget build(BuildContext context) {
@@ -65,10 +60,9 @@ class _CounterExampleState extends State<CounterExample> {
                     children: [
                       FilledButton.icon(
                         onPressed: () {
-                          dispatchEvent(
-                            context,
-                            IncrementEvent(CounterStore.counterKey),
-                          );
+                          IncrementEvent(
+                            CounterStore.counterKey,
+                          ).dispatch(context);
                         },
                         icon: const Icon(Icons.add),
                         label: const Text('Increment'),
@@ -78,10 +72,9 @@ class _CounterExampleState extends State<CounterExample> {
                       ),
                       FilledButton.icon(
                         onPressed: () {
-                          dispatchEvent(
-                            context,
-                            DecrementEvent(CounterStore.counterKey),
-                          );
+                          DecrementEvent(
+                            CounterStore.counterKey,
+                          ).dispatch(context);
                         },
                         icon: const Icon(Icons.remove),
                         label: const Text('Decrement'),
@@ -91,10 +84,10 @@ class _CounterExampleState extends State<CounterExample> {
                       ),
                       OutlinedButton.icon(
                         onPressed: () {
-                          dispatchEvent(
-                            context,
-                            SetValueEvent(CounterStore.counterKey, 0),
-                          );
+                          SetValueEvent(
+                            CounterStore.counterKey,
+                            0,
+                          ).dispatch(context);
                         },
                         icon: const Icon(Icons.refresh),
                         label: const Text('Reset'),

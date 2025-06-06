@@ -49,16 +49,11 @@ class _PosExampleState extends State<PosExample> {
     super.dispose();
   }
 
-  /// Dispatches a [PosEvent] to the store using notifications.
-  void _dispatchEvent(PosEvent event) {
-    PosNotification(event).dispatch(context);
-  }
-
   /// Starts a new order for the selected customer.
   void _startOrder() {
     if (_selectedCustomerId != null) {
       final orderId = DateTime.now().millisecondsSinceEpoch;
-      _dispatchEvent(StartOrderEvent(orderId, _selectedCustomerId!));
+      StartOrderEvent(orderId, _selectedCustomerId!).dispatch(context);
       setState(() {
         _selectedOrderId = orderId;
         _selectedNavIndex = 2; // Switch to Cart tab
@@ -71,13 +66,11 @@ class _PosExampleState extends State<PosExample> {
     if (_selectedOrderId != null && _selectedProductId != null) {
       final quantity = int.tryParse(_cartQuantityController.text);
       if (quantity != null && quantity > 0) {
-        _dispatchEvent(
-          AddProductToOrderEvent(
-            _selectedOrderId!,
-            _selectedProductId!,
-            quantity,
-          ),
-        );
+        AddProductToOrderEvent(
+          _selectedOrderId!,
+          _selectedProductId!,
+          quantity,
+        ).dispatch(context);
         _cartQuantityController.clear();
       }
     }
@@ -86,7 +79,7 @@ class _PosExampleState extends State<PosExample> {
   /// Completes the current order and resets selection.
   void _checkout() {
     if (_selectedOrderId != null) {
-      _dispatchEvent(CompleteOrderEvent(_selectedOrderId!));
+      CompleteOrderEvent(_selectedOrderId!).dispatch(context);
       setState(() {
         _selectedOrderId = null;
         _selectedCustomerId = null;
@@ -101,7 +94,7 @@ class _PosExampleState extends State<PosExample> {
       [orderId],
     );
     if (orderDetails.isNotEmpty) {
-      _dispatchEvent(RefundOrderEvent(orderId));
+      RefundOrderEvent(orderId).dispatch(context);
     }
   }
 
@@ -110,7 +103,7 @@ class _PosExampleState extends State<PosExample> {
     widget.store.db.execute('UPDATE orders SET refunded = 0 WHERE id = ?;', [
       orderId,
     ]);
-    _dispatchEvent(CompleteOrderEvent(orderId));
+    CompleteOrderEvent(orderId).dispatch(context);
   }
 
   /// Handles navigation bar tab selection.
@@ -187,23 +180,28 @@ class _PosExampleState extends State<PosExample> {
                     (quantity != null || !isEdit)) {
                   if (isEdit) {
                     if (name != product['name']) {
-                      _dispatchEvent(UpdateProductNameEvent(productId, name));
+                      UpdateProductNameEvent(productId, name).dispatch(context);
                     }
                     if (price != product['price']) {
-                      _dispatchEvent(UpdateProductPriceEvent(productId, price));
+                      UpdateProductPriceEvent(
+                        productId,
+                        price,
+                      ).dispatch(context);
                     }
                     if (quantity != null && product.containsKey('id')) {
-                      _dispatchEvent(
-                        SetProductInventoryEvent(productId, quantity),
-                      );
+                      SetProductInventoryEvent(
+                        productId,
+                        quantity,
+                      ).dispatch(context);
                     }
                   } else {
                     productId = DateTime.now().millisecondsSinceEpoch;
-                    _dispatchEvent(AddProductEvent(productId, name, price));
+                    AddProductEvent(productId, name, price).dispatch(context);
                     if (quantity != null) {
-                      _dispatchEvent(
-                        SetProductInventoryEvent(productId, quantity),
-                      );
+                      SetProductInventoryEvent(
+                        productId,
+                        quantity,
+                      ).dispatch(context);
                     }
                   }
                   Navigator.pop(context);
@@ -269,20 +267,22 @@ class _PosExampleState extends State<PosExample> {
                 if (name.isNotEmpty && (balance != null || !isEdit)) {
                   if (isEdit) {
                     if (name != customer['name']) {
-                      _dispatchEvent(UpdateCustomerEvent(customerId, name));
+                      UpdateCustomerEvent(customerId, name).dispatch(context);
                     }
                     if (balance != null && customer.containsKey('id')) {
-                      _dispatchEvent(
-                        UpdateCustomerBalanceEvent(customerId, balance),
-                      );
+                      UpdateCustomerBalanceEvent(
+                        customerId,
+                        balance,
+                      ).dispatch(context);
                     }
                   } else {
                     customerId = DateTime.now().millisecondsSinceEpoch;
-                    _dispatchEvent(AddCustomerEvent(customerId, name));
+                    AddCustomerEvent(customerId, name).dispatch(context);
                     if (balance != null) {
-                      _dispatchEvent(
-                        UpdateCustomerBalanceEvent(customerId, balance),
-                      );
+                      UpdateCustomerBalanceEvent(
+                        customerId,
+                        balance,
+                      ).dispatch(context);
                     }
                   }
                   Navigator.pop(context);

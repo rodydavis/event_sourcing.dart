@@ -1,3 +1,4 @@
+import 'package:event_sourcing/event_sourcing_flutter.dart';
 import 'package:flutter/material.dart';
 
 import 'store.dart';
@@ -27,11 +28,8 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: NotificationListener<CounterNotification>(
-        onNotification: (event) {
-          counterStore.eventStore.add(event.event);
-          return true;
-        },
+      home: EventNotificationHandler(
+        eventStore: counterStore.eventStore,
         child: CounterExample(store: counterStore),
       ),
     );
