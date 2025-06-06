@@ -1,0 +1,14 @@
+name: kv
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  event_sourcing:
+    path: ../../event_sourcing
+  sqlite3: ^2.7.6
+dev_dependencies:
+  test: ^1.26.2

@@ -36,6 +36,19 @@ class SetDocumentEvent extends AutoIncrementEvent {
       });
 }
 
+class DuplicateDocumentEvent extends AutoIncrementEvent {
+  final String collectionId;
+  final String documentId;
+  final String newDocumentId;
+
+  DuplicateDocumentEvent(this.collectionId, this.documentId, this.newDocumentId)
+    : super('DUPLICATE_DOCUMENT', {
+        'collectionId': collectionId,
+        'documentId': documentId,
+        'newDocumentId': newDocumentId,
+      });
+}
+
 class DeleteDocumentEvent extends AutoIncrementEvent {
   final String collectionId;
   final String documentId;

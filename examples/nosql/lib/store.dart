@@ -101,6 +101,18 @@ class NoSqlStore with ViewStore<CommonDatabase> {
           [jsonEncode(patch), documentId, collectionId],
         );
       }(),
+      DuplicateDocumentEvent() => () async {
+        final collectionId = event.collectionId;
+        final documentId = event.documentId;
+        final existingDoc = getDocument(collectionId, documentId);
+        if (existingDoc != null) {
+          final newDocumentId = event.newDocumentId;
+          db.execute(
+            'INSERT INTO documents (id, collection_id, data) VALUES (?, ?, ?);',
+            [newDocumentId, collectionId, jsonEncode(existingDoc.data)],
+          );
+        }
+      }(),
       DeleteDocumentEvent() => () async {
         final collectionId = event.collectionId;
         final documentId = event.documentId;

@@ -137,5 +137,22 @@ void main() {
       await store.eventStore.add(PatchDocumentEvent(collectionId, documentId, {'foo': 'again'}));
       expect(store.getDocument(collectionId, documentId)?.data, {'qux': true, 'foo': 'again'});
     });
+
+    test('DuplicateDocumentEvent duplicates a document', () async {
+      final collectionId = 'col_dup';
+      await store.eventStore.add(CreateCollectionEvent(collectionId, 'DupTest'));
+      await store.eventStore.add(CreateDocumentEvent(collectionId));
+      final events = await store.eventStore.getAll();
+      final docEvent = events.whereType<CreateDocumentEvent>().first;
+      final documentId = docEvent.id.toString();
+      await store.eventStore.add(PatchDocumentEvent(collectionId, documentId, {'foo': 'bar'}));
+      // Duplicate the document
+      final newDocumentId = 'dup_id';
+      await store.eventStore.add(DuplicateDocumentEvent(collectionId, documentId, newDocumentId));
+      // Check original
+      expect(store.getDocument(collectionId, documentId)?.data, {'foo': 'bar'});
+      // Check duplicate
+      expect(store.getDocument(collectionId, newDocumentId)?.data, {'foo': 'bar'});
+    });
   });
 }
