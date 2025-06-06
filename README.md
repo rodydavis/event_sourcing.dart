@@ -1,4 +1,4 @@
-# Event Sourcing Flutter Examples
+# Event Sourcing Examples (Dart)
 
 This repository demonstrates event sourcing patterns in Flutter using a modular event store and view store architecture. It includes two main example apps:
 
