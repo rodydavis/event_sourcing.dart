@@ -6,6 +6,8 @@ This repository demonstrates event sourcing patterns in Flutter using a modular 
 
 ### 1. Counter Example
 
+[example](examples/counter/)
+
 A minimal event-sourced counter app. Features:
 - Increment, decrement, and reset actions
 - Event history view (see all events that changed the counter)
@@ -13,12 +15,32 @@ A minimal event-sourced counter app. Features:
 
 ### 2. POS (Point of Sale) Example
 
+[example](examples/pos/)
+
 A more advanced example simulating a point-of-sale system. Features:
 - Customer and product management
 - Inventory tracking
 - Order creation, checkout, refund, and restore
 - Event history for all actions
 - Uses event sourcing to ensure all state changes are event-driven and auditable
+
+### 3. NoSQL Example
+
+[example](examples/nosql/)
+
+A document-oriented event-sourced store. Features:
+- Collection and document management (create, update, delete)
+- Patch and set operations for document data
+- Demonstrates event-driven NoSQL-like storage and querying
+
+### 4. Key-Value (KV) Example
+
+[example](examples/kv/)
+
+A simple key-value event-sourced store. Features:
+- Set and delete key-value pairs
+- Supports any JSON-serializable value
+- Demonstrates minimal event-driven state for key-value use cases
 
 ## Architecture
 
@@ -37,8 +59,3 @@ The `ViewStore` is an abstract class that reacts to events and manages the appli
 - A `restoreToEvent` method to reset and replay events up to a given point
 
 This separation allows for robust, testable, and auditable state management in Flutter apps.
-
-## Getting Started
-
-- Each example is a standalone Flutter app in its own directory (`examples/counter/`, `examples/pos/`).
-- Run `flutter pub get` in the desired example directory, then `flutter run` to launch.
