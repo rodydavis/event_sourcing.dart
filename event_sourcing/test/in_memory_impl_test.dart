@@ -109,5 +109,39 @@ void main() {
       expect(allEvents.last.version, '2.0.0');
       expect(allEvents.last.data['foo'], 'baz');
     });
+
+    test('sync between two stores using set difference', () async {
+      final storeA = InMemoryEventStore((_) {});
+      final storeB = InMemoryEventStore((_) {});
+
+      // Add events to storeA
+      final eventA1 = Event(id: Hlc.now('A'), type: 'A1', data: {'val': 1});
+      final eventA2 = Event(id: Hlc.now('A'), type: 'A2', data: {'val': 2});
+      await storeA.addAll([eventA1, eventA2]);
+
+      // Add events to storeB
+      final eventB1 = Event(id: Hlc.now('B'), type: 'B1', data: {'val': 10});
+      await storeB.add(eventB1);
+
+      // Sync: find missing events in each store
+      final eventsA = await storeA.getAll();
+      final eventsB = await storeB.getAll();
+      final idsA = eventsA.map((e) => e.id).toSet();
+      final idsB = eventsB.map((e) => e.id).toSet();
+
+      final missingInB = eventsA.where((e) => !idsB.contains(e.id));
+      final missingInA = eventsB.where((e) => !idsA.contains(e.id));
+
+      await storeB.addAll(missingInB);
+      await storeA.addAll(missingInA);
+
+      // After sync, both stores should have the same events
+      final syncedA = await storeA.getAll();
+      final syncedB = await storeB.getAll();
+      final idsSyncedA = syncedA.map((e) => e.id).toSet();
+      final idsSyncedB = syncedB.map((e) => e.id).toSet();
+      expect(idsSyncedA, equals(idsSyncedB));
+      expect(idsSyncedA, containsAll([eventA1.id, eventA2.id, eventB1.id]));
+    });
   });
 }
