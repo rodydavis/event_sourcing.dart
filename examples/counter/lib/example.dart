@@ -32,7 +32,13 @@ class _CounterExampleState extends State<CounterExample> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Counter Example'),
-        actions: [EventHistoryScreen.buildIconButton(context, widget.store)],
+        actions: [
+          EventHistoryScreen.buildIconButton(
+            context,
+            widget.store.eventStore,
+            widget.store.onReset,
+          ),
+        ],
       ),
       body: Watch.builder(
         builder: (context) {

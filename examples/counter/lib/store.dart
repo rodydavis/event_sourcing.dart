@@ -3,14 +3,12 @@ import 'package:event_sourcing/event_sourcing.dart';
 import 'package:signals/signals.dart';
 import 'events.dart';
 
-class CounterStore with ViewStore<Map<String, int>> {
-  @override
+class CounterStore {
   late final EventStore eventStore = InMemoryEventStore(onEvent);
   final counters = mapSignal(<String, int>{});
 
   static const String counterKey = 'counter';
 
-  @override
   FutureOr<void> onEvent(Event event) async {
     return switch (event) {
       SetValueEvent() => () async {
@@ -31,6 +29,5 @@ class CounterStore with ViewStore<Map<String, int>> {
     };
   }
 
-  @override
   FutureOr<void> onReset() async => counters.clear();
 }

@@ -15,7 +15,7 @@ void main() {
     });
 
     tearDown(() async {
-      await store.dispose();
+      // await store.dispose();
     });
 
     test('Add products, inventory, and customer, then query state', () async {

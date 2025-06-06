@@ -1,13 +1,24 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:event_sourcing/event_sourcing.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class EventHistoryScreen extends StatelessWidget {
-  const EventHistoryScreen({super.key, required this.store});
+  const EventHistoryScreen({
+    super.key,
+    required this.store,
+    required this.onReset,
+  });
 
-  final ViewStore store;
+  final EventStore store;
+  final FutureOr<void> Function() onReset;
 
-  static Widget buildIconButton(BuildContext context, ViewStore store) {
+  static Widget buildIconButton(
+    BuildContext context,
+    EventStore store,
+    FutureOr<void> Function() onReset,
+  ) {
     return IconButton(
       icon: const Icon(Icons.restore),
       tooltip: 'Event History',
@@ -15,7 +26,9 @@ class EventHistoryScreen extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => EventHistoryScreen(store: store),
+            builder: (context) {
+              return EventHistoryScreen(store: store, onReset: onReset);
+            },
             fullscreenDialog: true,
           ),
         );
@@ -28,10 +41,10 @@ class EventHistoryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Event History')),
       body: StreamBuilder<Event>(
-        stream: store.eventStore.onEvent(),
+        stream: store.onEvent(),
         builder: (context, _) {
           return FutureBuilder<List<Event>>(
-            future: (() async => store.eventStore.getAll())(),
+            future: (() async => store.getAll())(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
@@ -60,6 +73,7 @@ class EventHistoryScreen extends StatelessWidget {
                               ? null
                               : () async {
                                 final messenger = ScaffoldMessenger.of(context);
+                                await onReset();
                                 await store.restoreToEvent(event);
                                 messenger.showSnackBar(
                                   SnackBar(

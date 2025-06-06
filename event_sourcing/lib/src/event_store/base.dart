@@ -30,13 +30,13 @@ abstract class EventStore {
     await _processEvents();
   }
 
-  /// Retrieves all events from the event store.
-  FutureOr<List<Event>> getAll();
-
   /// Watch all events
   Stream<Event> onEvent() {
     return _controller.stream;
   }
+
+  /// Retrieves all events from the event store.
+  FutureOr<List<Event>> getAll();
 
   /// Retrieve an event by its ID
   FutureOr<Event?> getById(String id);
@@ -51,5 +51,35 @@ abstract class EventStore {
   FutureOr<void> dispose() async {
     _eventQueue.clear();
     await _controller.close();
+  }
+
+  FutureOr<bool> restoreToEvent(Event event) async {
+    final events = await getAll();
+    final staged = <Event>[];
+    bool found = false;
+    for (final e in events) {
+      staged.add(e);
+      if (e.id == event.id) {
+        found = true;
+        break;
+      }
+    }
+    await replayAll(events: staged);
+    return found;
+  }
+
+  FutureOr<bool> mergeEvents(Iterable<Event> events) async {
+    if (events.isEmpty) return false;
+    var all = (await getAll()).toSet();
+    all.addAll(events);
+    await replayAll(events: all);
+    return true;
+  }
+
+  FutureOr<void> replayAll({Iterable<Event>? events}) async {
+    var all = (events ?? await getAll()).toSet().toList();
+    all.sort((a, b) => a.id.compareTo(b.id));
+    await deleteAll();
+    await addAll(all);
   }
 }

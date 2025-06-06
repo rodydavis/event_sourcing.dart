@@ -3,16 +3,13 @@ import 'package:sqlite3/common.dart';
 import 'dart:async';
 import 'events.dart';
 
-class KeyValueStore with ViewStore<CommonDatabase> {
-  @override
+class KeyValueStore {
   late final EventStore eventStore = InMemoryEventStore(onEvent);
   final CommonDatabase db;
 
   KeyValueStore(this.db);
 
-  @override
   FutureOr<void> init() async {
-    await super.init();
     db.execute('''
       CREATE TABLE IF NOT EXISTS kv_store (
         key TEXT PRIMARY KEY,
@@ -21,12 +18,10 @@ class KeyValueStore with ViewStore<CommonDatabase> {
     ''');
   }
 
-  @override
   FutureOr<void> onReset() {
     db.execute('DELETE FROM kv_store;');
   }
 
-  @override
   FutureOr<void> onEvent(Event event) async {
     return switch (event) {
       SetKeyValueEvent() => () async {

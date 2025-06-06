@@ -7,16 +7,13 @@ import 'package:sqlite3/common.dart';
 import 'events.dart';
 import 'hooks.dart';
 
-class PosStore with ViewStore<CommonDatabase> {
-  @override
+class PosStore {
   late final EventStore eventStore = InMemoryEventStore(onEvent);
   final CommonDatabase db;
 
   PosStore(this.db);
 
-  @override
   FutureOr<void> init() async {
-    await super.init();
     // Create tables and indexes if they do not exist
 
     // Products
@@ -80,7 +77,6 @@ class PosStore with ViewStore<CommonDatabase> {
     ''');
   }
 
-  @override
   FutureOr<void> onReset() {
     // Delete all rows in all tables
     db.execute('DELETE FROM products;');
@@ -91,7 +87,6 @@ class PosStore with ViewStore<CommonDatabase> {
     db.execute('DELETE FROM order_items;');
   }
 
-  @override
   FutureOr<void> onEvent(Event event) async {
     assert(event is PosEvent, 'Event must be a PosEvent');
     return switch (event) {

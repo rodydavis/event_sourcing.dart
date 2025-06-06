@@ -16,7 +16,7 @@ void main() {
     });
 
     tearDown(() async {
-      await store.dispose();
+      db.dispose();
     });
 
     test('Create, update, and delete collection', () async {
@@ -74,13 +74,17 @@ void main() {
       final documentId = 'nonexistent';
       await store.eventStore.add(CreateCollectionEvent(collectionId, 'Test'));
       // Should not throw
-      await store.eventStore.add(PatchDocumentEvent(collectionId, documentId, {'foo': 'bar'}));
+      await store.eventStore.add(
+        PatchDocumentEvent(collectionId, documentId, {'foo': 'bar'}),
+      );
       expect(store.getDocument(collectionId, documentId)?.data, isNull);
     });
 
     test('Create multiple documents in a collection', () async {
       final collectionId = 'col5';
-      await store.eventStore.add(CreateCollectionEvent(collectionId, 'MultiDocs'));
+      await store.eventStore.add(
+        CreateCollectionEvent(collectionId, 'MultiDocs'),
+      );
       await store.eventStore.add(CreateDocumentEvent(collectionId));
       await store.eventStore.add(CreateDocumentEvent(collectionId));
       final events = await store.eventStore.getAll();
@@ -94,65 +98,105 @@ void main() {
 
     test('Update document with empty patch does not change data', () async {
       final collectionId = 'col6';
-      await store.eventStore.add(CreateCollectionEvent(collectionId, 'EmptyPatch'));
+      await store.eventStore.add(
+        CreateCollectionEvent(collectionId, 'EmptyPatch'),
+      );
       await store.eventStore.add(CreateDocumentEvent(collectionId));
       final events = await store.eventStore.getAll();
       final docEvent = events.whereType<CreateDocumentEvent>().first;
       final documentId = docEvent.id.toString();
-      await store.eventStore.add(PatchDocumentEvent(collectionId, documentId, {}));
+      await store.eventStore.add(
+        PatchDocumentEvent(collectionId, documentId, {}),
+      );
       expect(store.getDocument(collectionId, documentId)?.data, {});
     });
 
-    test('Delete non-existent collection and document does not throw', () async {
-      final collectionId = 'col7';
-      final documentId = 'doesnotexist';
-      // Should not throw
-      await store.eventStore.add(DeleteCollectionEvent(collectionId));
-      await store.eventStore.add(DeleteDocumentEvent(collectionId, documentId));
-      expect(store.getCollection(collectionId)?.name, isNull);
-      expect(store.getDocument(collectionId, documentId)?.data, isNull);
-    });
+    test(
+      'Delete non-existent collection and document does not throw',
+      () async {
+        final collectionId = 'col7';
+        final documentId = 'doesnotexist';
+        // Should not throw
+        await store.eventStore.add(DeleteCollectionEvent(collectionId));
+        await store.eventStore.add(
+          DeleteDocumentEvent(collectionId, documentId),
+        );
+        expect(store.getCollection(collectionId)?.name, isNull);
+        expect(store.getDocument(collectionId, documentId)?.data, isNull);
+      },
+    );
 
-    test('PatchDocumentEvent merges fields, SetDocumentEvent replaces data', () async {
-      final collectionId = 'col_patch_set';
-      await store.eventStore.add(CreateCollectionEvent(collectionId, 'PatchSet'));
-      await store.eventStore.add(CreateDocumentEvent(collectionId));
-      final events = await store.eventStore.getAll();
-      final docEvent = events.whereType<CreateDocumentEvent>().first;
-      final documentId = docEvent.id.toString();
+    test(
+      'PatchDocumentEvent merges fields, SetDocumentEvent replaces data',
+      () async {
+        final collectionId = 'col_patch_set';
+        await store.eventStore.add(
+          CreateCollectionEvent(collectionId, 'PatchSet'),
+        );
+        await store.eventStore.add(CreateDocumentEvent(collectionId));
+        final events = await store.eventStore.getAll();
+        final docEvent = events.whereType<CreateDocumentEvent>().first;
+        final documentId = docEvent.id.toString();
 
-      // Patch: add foo
-      await store.eventStore.add(PatchDocumentEvent(collectionId, documentId, {'foo': 'bar'}));
-      expect(store.getDocument(collectionId, documentId)?.data, {'foo': 'bar'});
+        // Patch: add foo
+        await store.eventStore.add(
+          PatchDocumentEvent(collectionId, documentId, {'foo': 'bar'}),
+        );
+        expect(store.getDocument(collectionId, documentId)?.data, {
+          'foo': 'bar',
+        });
 
-      // Patch: add baz
-      await store.eventStore.add(PatchDocumentEvent(collectionId, documentId, {'baz': 123}));
-      expect(store.getDocument(collectionId, documentId)?.data, {'foo': 'bar', 'baz': 123});
+        // Patch: add baz
+        await store.eventStore.add(
+          PatchDocumentEvent(collectionId, documentId, {'baz': 123}),
+        );
+        expect(store.getDocument(collectionId, documentId)?.data, {
+          'foo': 'bar',
+          'baz': 123,
+        });
 
-      // Set: replace with only qux
-      await store.eventStore.add(SetDocumentEvent(collectionId, documentId, {'qux': true}));
-      expect(store.getDocument(collectionId, documentId)?.data, {'qux': true});
+        // Set: replace with only qux
+        await store.eventStore.add(
+          SetDocumentEvent(collectionId, documentId, {'qux': true}),
+        );
+        expect(store.getDocument(collectionId, documentId)?.data, {
+          'qux': true,
+        });
 
-      // Patch: add foo back, should merge
-      await store.eventStore.add(PatchDocumentEvent(collectionId, documentId, {'foo': 'again'}));
-      expect(store.getDocument(collectionId, documentId)?.data, {'qux': true, 'foo': 'again'});
-    });
+        // Patch: add foo back, should merge
+        await store.eventStore.add(
+          PatchDocumentEvent(collectionId, documentId, {'foo': 'again'}),
+        );
+        expect(store.getDocument(collectionId, documentId)?.data, {
+          'qux': true,
+          'foo': 'again',
+        });
+      },
+    );
 
     test('DuplicateDocumentEvent duplicates a document', () async {
       final collectionId = 'col_dup';
-      await store.eventStore.add(CreateCollectionEvent(collectionId, 'DupTest'));
+      await store.eventStore.add(
+        CreateCollectionEvent(collectionId, 'DupTest'),
+      );
       await store.eventStore.add(CreateDocumentEvent(collectionId));
       final events = await store.eventStore.getAll();
       final docEvent = events.whereType<CreateDocumentEvent>().first;
       final documentId = docEvent.id.toString();
-      await store.eventStore.add(PatchDocumentEvent(collectionId, documentId, {'foo': 'bar'}));
+      await store.eventStore.add(
+        PatchDocumentEvent(collectionId, documentId, {'foo': 'bar'}),
+      );
       // Duplicate the document
       final newDocumentId = 'dup_id';
-      await store.eventStore.add(DuplicateDocumentEvent(collectionId, documentId, newDocumentId));
+      await store.eventStore.add(
+        DuplicateDocumentEvent(collectionId, documentId, newDocumentId),
+      );
       // Check original
       expect(store.getDocument(collectionId, documentId)?.data, {'foo': 'bar'});
       // Check duplicate
-      expect(store.getDocument(collectionId, newDocumentId)?.data, {'foo': 'bar'});
+      expect(store.getDocument(collectionId, newDocumentId)?.data, {
+        'foo': 'bar',
+      });
     });
   });
 }

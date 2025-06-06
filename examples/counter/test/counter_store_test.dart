@@ -8,12 +8,9 @@ void main() {
 
     setUp(() async {
       store = CounterStore();
-      await store.init();
     });
 
-    tearDown(() async {
-      await store.dispose();
-    });
+    tearDown(() async {});
 
     test('Initial state is zero', () async {
       expect(store.count, 0, reason: 'Counter should start at 0');

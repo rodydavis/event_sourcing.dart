@@ -7,7 +7,6 @@ import 'example.dart';
 
 void main() async {
   final store = CounterStore();
-  await store.init();
   final key = CounterStore.counterKey;
   await store.eventStore.addAll([
     ResetEvent(key),

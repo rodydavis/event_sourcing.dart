@@ -4,16 +4,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'events.dart';
 
-class NoSqlStore with ViewStore<CommonDatabase> {
-  @override
+class NoSqlStore {
   late final EventStore eventStore = InMemoryEventStore(onEvent);
   final CommonDatabase db;
 
   NoSqlStore(this.db);
 
-  @override
   FutureOr<void> init() async {
-    await super.init();
     // Create collections and documents tables
     db.execute('''
       CREATE TABLE IF NOT EXISTS collections (
@@ -31,13 +28,11 @@ class NoSqlStore with ViewStore<CommonDatabase> {
     ''');
   }
 
-  @override
   FutureOr<void> onReset() {
     db.execute('DELETE FROM documents;');
     db.execute('DELETE FROM collections;');
   }
 
-  @override
   FutureOr<void> onEvent(Event event) async {
     return switch (event) {
       CreateCollectionEvent() => () async {

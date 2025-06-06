@@ -427,7 +427,11 @@ class _PosExampleState extends State<PosExample> {
               tooltip: 'Add Product',
               onPressed: () => _showProductDialog(),
             ),
-          EventHistoryScreen.buildIconButton(context, widget.store),
+          EventHistoryScreen.buildIconButton(
+            context,
+            widget.store.eventStore,
+            widget.store.onReset,
+          ),
         ],
       ),
       body: switch (_selectedNavIndex) {

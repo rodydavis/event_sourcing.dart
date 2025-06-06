@@ -15,7 +15,7 @@ void main() {
     });
 
     tearDown(() async {
-      await store.dispose();
+      db.dispose();
     });
 
     test('Set and get value', () async {
