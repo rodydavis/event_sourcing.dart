@@ -81,8 +81,8 @@ graph TD
     EventStore -- persists events --> File
   end
 
-  UI -.-> "User Actions" -.-> ViewStore
-  EventStore -.-> "Streams/History" -.-> UI
+  UI --> "User Actions" --> ViewStore
+  EventStore --> "Streams/History" --> UI
 ```
 
 This diagram shows how the Flutter UI interacts with the `ViewStore` for state management, which in turn processes events and interacts with the `EventStore` for persistence and replay. The `EventStore` can use different storage backends (file, SQLite, memory) and streams events back to the UI for history or debugging.
