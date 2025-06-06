@@ -64,25 +64,20 @@ This separation allows for robust, testable, and auditable state management in F
 
 ```mermaid
 graph TD
-  subgraph App
-    UI["Flutter UI"]
-    UI --> ViewStore
+  subgraph reads
+    ViewStore -- queries --> State
   end
 
-  subgraph Core
-    ViewStore["ViewStore\n(State Management)"]
-    EventStore["EventStore\n(Persistence & Replay)"]
-    ViewStore -- onEvent/restoreToEvent --> EventStore
-    EventStore -- emits events --> ViewStore
+  subgraph writes 
+    ViewStore -- dispatch/restore --> EventStore
+    EventStore -- on event --> ViewStore
   end
 
   subgraph Storage
     File["File (JSON/SQLite/Memory)"]
-    EventStore -- persists events --> File
+    EventStore -- persist --> File
+    State -- persist --> File
   end
-
-  UI --> "User Actions" --> ViewStore
-  EventStore --> "Streams/History" --> UI
 ```
 
 This diagram shows how the Flutter UI interacts with the `ViewStore` for state management, which in turn processes events and interacts with the `EventStore` for persistence and replay. The `EventStore` can use different storage backends (file, SQLite, memory) and streams events back to the UI for history or debugging.
