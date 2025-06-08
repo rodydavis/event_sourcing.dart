@@ -63,15 +63,16 @@ class NoSqlStore {
       CreateDocumentEvent() => () async {
         final collectionId = event.collectionId;
         final documentId = event.id.toString();
+        final patch = event.patch;
         db.execute(
-          'INSERT INTO documents (id, collection_id, data) VALUES (?, ?, ?) ON CONFLICT(id) DO NOTHING;',
-          [documentId, collectionId, '{}'],
+          'INSERT INTO documents (id, collection_id, data) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET data = ?;',
+          [documentId, collectionId, jsonEncode(patch), jsonEncode(patch)],
         );
       }(),
       PatchDocumentEvent() => () async {
         final collectionId = event.collectionId;
         final documentId = event.documentId;
-        final patch = event.patch ?? {};
+        final patch = event.patch;
         // Use SQLite's json_patch for atomic patching
         db.execute(
           '''
@@ -85,7 +86,7 @@ class NoSqlStore {
       SetDocumentEvent() => () async {
         final collectionId = event.collectionId;
         final documentId = event.documentId;
-        final patch = event.patch ?? {};
+        final patch = event.patch;
         // Use SQLite's json_patch for atomic set
         db.execute(
           '''
