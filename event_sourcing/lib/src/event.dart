@@ -5,15 +5,18 @@ import 'hlc.dart';
 class AutoIncrementEvent extends Event {
   static var _hlc = Hlc.now('node1');
 
-  static Hlc get newId =>_hlc = _hlc.increment();
+  static Hlc get newId => _hlc = _hlc.increment();
 
   /// The node ID for this event. Used to generate the HLC.
   set nodeId(String nodeId) {
     _hlc = Hlc.now(nodeId);
   }
 
-  AutoIncrementEvent(String type, [Map<String, Object?> data = const {}])
-    : super(id: newId, type: type, data: {...data});
+  AutoIncrementEvent(
+    String type, [
+    Map<String, Object?> data = const {},
+    Hlc? id,
+  ]) : super(id: id ?? newId, type: type, data: {...data});
 }
 
 /// Represents a domain event with a unique ID (HLC), type, and associated data.

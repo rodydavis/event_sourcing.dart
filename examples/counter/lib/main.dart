@@ -1,20 +1,27 @@
 import 'package:event_sourcing/event_sourcing_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
-import 'store.dart';
 import 'events.dart';
+import 'store.dart';
 import 'example.dart';
 
 void main() async {
-  final store = CounterStore();
+  WidgetsFlutterBinding.ensureInitialized();
+  final dir = await getApplicationDocumentsDirectory();
+  final path = '${dir.path}/counters.json';
+  final store = CounterStore(path);
   final key = CounterStore.counterKey;
-  await store.eventStore.addAll([
-    ResetEvent(key),
-    IncrementEvent(key),
-    IncrementEvent(key),
-    DecrementEvent(key),
-    SetValueEvent(key, 5),
-  ]);
+  final current = await store.eventStore.getAll();
+  if (current.isEmpty) {
+    await store.eventStore.addAll([
+      ResetEvent(key),
+      IncrementEvent(key),
+      IncrementEvent(key),
+      DecrementEvent(key),
+      SetValueEvent(key, 5),
+    ]);
+  }
   runApp(App(counterStore: store));
 }
 

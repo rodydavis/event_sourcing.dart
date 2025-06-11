@@ -20,20 +20,20 @@ import 'base.dart';
 /// final allEvents = await store.getAll();
 /// print(allEvents);
 /// ```
-class InMemoryEventStore extends EventStore {
-  InMemoryEventStore(super.processEvent);
-  var events = <Event>[];
+class InMemoryEventStore<E extends Event> extends EventStore<E> {
+  InMemoryEventStore(super.processEvent, super.parseEvent);
+  var events = <E>[];
 
   /// Saves an event to the in-memory store.
   @override
-  Future<void> add(Event event) async {
+  Future<void> add(E event) async {
     await super.add(event);
     events.add(event);
   }
 
   /// Saves a list of events to the in-memory store.
   @override
-  Future<void> addAll(Iterable<Event> events) async {
+  Future<void> addAll(Iterable<E> events) async {
     await super.addAll(events);
     this.events.addAll(events);
   }
@@ -45,7 +45,7 @@ class InMemoryEventStore extends EventStore {
   }
 
   @override
-  FutureOr<Event?> getById(String id) {
+  FutureOr<E?> getById(String id) {
     for (final event in events) {
       if (event.id.toString() == id) {
         return event;
@@ -55,7 +55,7 @@ class InMemoryEventStore extends EventStore {
   }
 
   @override
-  FutureOr<List<Event>> getAll() async {
+  FutureOr<List<E>> getAll() async {
     return events.toList();
   }
 

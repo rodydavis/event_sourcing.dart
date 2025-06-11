@@ -4,7 +4,16 @@ import 'dart:async';
 import 'events.dart';
 
 class KeyValueStore {
-  late final EventStore eventStore = InMemoryEventStore(onEvent);
+  late final EventStore eventStore = InMemoryEventStore(onEvent, (event) {
+    final type = event.type;
+    final key = event.data['key'] as String;
+    final value = event.data['value'];
+    return switch (type) {
+      'SET_KEY_VALUE' => SetKeyValueEvent(key, value),
+      'DELETE_KEY_VALUE' => DeleteKeyValueEvent(key),
+      _ => throw ArgumentError('Unknown event type: $type'),
+    };
+  });
   final CommonDatabase db;
 
   KeyValueStore(this.db);

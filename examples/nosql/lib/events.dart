@@ -2,11 +2,19 @@ import 'package:event_sourcing/event_sourcing.dart';
 
 class CreateDocumentEvent extends AutoIncrementEvent {
   final String collectionId;
+  final String documentId;
 
   final Map<String, dynamic> patch;
 
-  CreateDocumentEvent(this.collectionId, [this.patch = const {}])
-    : super('CREATE_DOCUMENT', {'collectionId': collectionId, 'patch': patch});
+  CreateDocumentEvent(
+    this.collectionId,
+    this.documentId, [
+    this.patch = const {},
+  ]) : super('CREATE_DOCUMENT', {
+         'collectionId': collectionId,
+         'documentId': documentId,
+         'patch': patch,
+       });
 }
 
 class PatchDocumentEvent extends AutoIncrementEvent {

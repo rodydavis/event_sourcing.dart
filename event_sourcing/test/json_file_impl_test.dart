@@ -15,7 +15,7 @@ void main() {
       fs = MemoryFileSystem();
       tempFile = fs.file('test_event_store.json');
       if (tempFile.existsSync()) tempFile.deleteSync();
-      store = JsonFileEventStore(tempFile, fs, (_) {});
+      store = JsonFileEventStore(tempFile, fs, (_) {}, (e) => e);
     });
 
     tearDown(() {
@@ -30,7 +30,7 @@ void main() {
         version: '2.0.0',
       );
       await store.add(event);
-      final loadedStore = JsonFileEventStore(tempFile, fs, (_) {});
+      final loadedStore = JsonFileEventStore(tempFile, fs, (_) {}, (e) => e);
       final allEvents = await loadedStore.getAll();
       expect(allEvents.length, 1);
       expect(allEvents.first.id, event.id);
@@ -44,7 +44,7 @@ void main() {
         Event(id: Hlc.now('node1'), type: 'b', data: {}),
       ];
       await store.addAll(events);
-      final loadedStore = JsonFileEventStore(tempFile, fs, (_) {});
+      final loadedStore = JsonFileEventStore(tempFile, fs, (_) {}, (e) => e);
       final event = await loadedStore.getById(events[1].id.toString());
       expect(event, isNotNull);
       expect(event!.type, 'b');
@@ -53,7 +53,7 @@ void main() {
     test('deleteAll clears file', () async {
       await store.add(Event(id: Hlc.now('node1'), type: 'a', data: {}));
       await store.deleteAll();
-      final loadedStore = JsonFileEventStore(tempFile, fs, (_) {});
+      final loadedStore = JsonFileEventStore(tempFile, fs, (_) {}, (e) => e);
       final allEvents = await loadedStore.getAll();
       expect(allEvents, isEmpty);
     });
@@ -67,7 +67,7 @@ void main() {
           Event(id: now.increment(), type: 'b', data: {}),
         ];
         final emitted = <Event>[];
-        final store = JsonFileEventStore(tempFile, fs, (_) {});
+        final store = JsonFileEventStore(tempFile, fs, (_) {}, (e) => e);
         final completer = Completer<void>();
         final sub = store.onEvent().listen((event) {
           emitted.add(event);
@@ -96,7 +96,7 @@ void main() {
         ];
         final emitted = <Event>[];
         fs = LocalFileSystem();
-        final store = JsonFileEventStore(tempFile, fs, (_) {});
+        final store = JsonFileEventStore(tempFile, fs, (_) {}, (e) => e);
         final completer = Completer<void>();
         final sub = store.onEvent().listen((event) {
           emitted.add(event);
@@ -129,7 +129,7 @@ void main() {
         data: nestedData,
       );
       await store.add(event);
-      final loadedStore = JsonFileEventStore(tempFile, fs, (_) {});
+      final loadedStore = JsonFileEventStore(tempFile, fs, (_) {}, (e) => e);
       final allEvents = await loadedStore.getAll();
       expect(allEvents.length, 1);
       expect(allEvents.first.id, event.id);
@@ -152,7 +152,7 @@ void main() {
       );
       await store.add(eventV1);
       await store.add(eventV2);
-      final loadedStore = JsonFileEventStore(tempFile, fs, (_) {});
+      final loadedStore = JsonFileEventStore(tempFile, fs, (_) {}, (e) => e);
       final allEvents = await loadedStore.getAll();
       expect(allEvents.last.version, '2.0.0');
       expect(allEvents.last.data['foo'], 'baz');

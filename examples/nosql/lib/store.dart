@@ -5,7 +5,37 @@ import 'dart:convert';
 import 'events.dart';
 
 class NoSqlStore {
-  late final EventStore eventStore = InMemoryEventStore(onEvent);
+  late final EventStore eventStore = InMemoryEventStore(onEvent, (event) {
+    final type = event.type;
+    final collectionId = event.data['collectionId'] as String;
+    final documentId = event.data['documentId'] as String?;
+    final patch = (event.data['patch'] as Map? ?? {}).cast<String, dynamic>();
+    return switch (type) {
+      'CREATE_COLLECTION' => CreateCollectionEvent(
+        collectionId,
+        event.data['collectionName'] as String,
+      ),
+      'UPDATE_COLLECTION' => UpdateCollectionEvent(
+        collectionId,
+        event.data['collectionName'] as String?,
+      ),
+      'DELETE_COLLECTION' => DeleteCollectionEvent(collectionId),
+      'CREATE_DOCUMENT' => CreateDocumentEvent(
+        collectionId,
+        documentId!,
+        patch,
+      ),
+      'PATCH_DOCUMENT' => PatchDocumentEvent(collectionId, documentId!, patch),
+      'SET_DOCUMENT' => SetDocumentEvent(collectionId, documentId!, patch),
+      'DUPLICATE_DOCUMENT' => DuplicateDocumentEvent(
+        collectionId,
+        documentId!,
+        event.data['newDocumentId'] as String,
+      ),
+      'DELETE_DOCUMENT' => DeleteDocumentEvent(collectionId, documentId!),
+      _ => throw ArgumentError('Unknown event type: $type'),
+    };
+  });
   final CommonDatabase db;
 
   NoSqlStore(this.db);
@@ -62,7 +92,7 @@ class NoSqlStore {
       }(),
       CreateDocumentEvent() => () async {
         final collectionId = event.collectionId;
-        final documentId = event.id.toString();
+        final documentId = event.documentId;
         final patch = event.patch;
         db.execute(
           'INSERT INTO documents (id, collection_id, data) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET data = ?;',
@@ -137,6 +167,19 @@ class NoSqlStore {
     ]);
     if (result.isEmpty) return null;
     return Collection(result.first);
+  }
+
+  List<Document> getDocuments(String collectionId) {
+    final result = db.select(
+      'SELECT id, data FROM documents WHERE collection_id = ?;',
+      [collectionId],
+    );
+    return result.map(Document.new).toList();
+  }
+
+  List<Collection> getCollections() {
+    final result = db.select('SELECT id, name FROM collections;');
+    return result.map(Collection.new).toList();
   }
 }
 

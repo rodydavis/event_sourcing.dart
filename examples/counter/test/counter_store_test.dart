@@ -1,16 +1,24 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:counter/store.dart';
 import 'package:counter/events.dart';
+import 'package:file/memory.dart';
 
 void main() {
   group('Counter Store Integration Tests', () {
     late CounterStore store;
+    final tempDir = Directory.systemTemp.createTempSync('counter_store_test');
+    final tempFile = File('${tempDir.path}/counter_store.json');
 
     setUp(() async {
-      store = CounterStore();
+      store = CounterStore(tempFile.path);
+      store.fs = MemoryFileSystem();
     });
 
-    tearDown(() async {});
+    tearDown(() async {
+      tempFile.deleteSync();
+    });
 
     test('Initial state is zero', () async {
       expect(store.count, 0, reason: 'Counter should start at 0');

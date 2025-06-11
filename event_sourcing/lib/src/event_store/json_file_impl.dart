@@ -19,18 +19,21 @@ import '../event.dart';
 /// The file is kept open for the duration of the stream to further reduce overhead.
 ///
 /// This approach is highly efficient for append-only event streams, as it minimizes disk I/O and parsing work.
-class JsonFileEventStore extends EventStore {
+class JsonFileEventStore<E extends Event> extends EventStore<E> {
   final File file;
   final FileSystem fileSystem;
 
-  JsonFileEventStore(this.file, this.fileSystem, super.processEvent);
+  JsonFileEventStore(
+    this.file,
+    this.fileSystem,
+    super.processEvent,
+    super.parseEvent,
+  );
 
   // TODO: Fails when async
-  Future<void> _append(Event event) async {
-    await file.writeAsString(
-      '${jsonEncode(event.toJson())}\n',
-      mode: FileMode.append,
-    );
+  Future<void> _append(E event) async {
+    final str = '${jsonEncode(event.toJson())}\n';
+    await file.writeAsString(str, mode: FileMode.append);
     // if (!fileSystem.isWatchSupported) {
     //   // Emit to stream if not using file watch
     //   _controller.add(event);
@@ -38,37 +41,40 @@ class JsonFileEventStore extends EventStore {
   }
 
   @override
-  Future<void> add(Event event) async {
-    await super.add(event);
+  Future<void> add(E event) async {
     await _append(event);
+    await super.add(event);
   }
 
   @override
-  Future<void> addAll(Iterable<Event> events) async {
+  Future<void> addAll(Iterable<E> events) async {
+    for (final event in events) {
+      await _append(event);
+    }
     await super.addAll(events);
-    await Future.wait(events.map(_append));
   }
 
   @override
-  Future<List<Event>> getAll() async {
+  Future<List<E>> getAll() async {
     final lines = file.readAsLinesSync();
     return lines
         .where((line) => line.trim().isNotEmpty)
-        .map((line) => Event.fromJson(jsonDecode(line)))
+        .map((line) => Event.fromJson(jsonDecode(line.trim())))
+        .map(parseEvent)
         .toList();
   }
 
   @override
-  Future<Event?> getById(String id) async {
+  Future<E?> getById(String id) async {
     final lines = file
         .openRead()
         .transform(utf8.decoder)
         .transform(const LineSplitter());
     await for (final line in lines) {
       if (line.trim().isEmpty) continue;
-      final event = Event.fromJson(jsonDecode(line));
+      final event = Event.fromJson(jsonDecode(line.trim()));
       if (event.id.toString() == id) {
-        return event;
+        return parseEvent(event);
       }
     }
     return null;
@@ -76,7 +82,9 @@ class JsonFileEventStore extends EventStore {
 
   @override
   Future<void> deleteAll() async {
-    file.writeAsStringSync('');
+    await file.delete();
+    await file.create(recursive: true);
+    await super.deleteAll();
   }
 
   /// Streams all events as they are added or detected from file changes.

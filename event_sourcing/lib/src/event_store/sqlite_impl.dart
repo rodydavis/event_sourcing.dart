@@ -17,7 +17,7 @@ enum SqliteEventDataType {
 }
 
 /// An implementation of [EventStore] that persists events to a SQLite database.
-class SqliteEventStore extends EventStore {
+class SqliteEventStore<E extends Event> extends EventStore<E> {
   final CommonDatabase db;
   final SqliteEventDataType dataType;
 
@@ -26,7 +26,8 @@ class SqliteEventStore extends EventStore {
   /// [dataType] controls how the event data is stored (text, json, or jsonb).
   SqliteEventStore(
     this.db,
-    super.processEvent, {
+    super.processEvent,
+    super.parseEvent, {
     bool wal = false,
     this.dataType = SqliteEventDataType.text,
   }) {
@@ -45,7 +46,7 @@ class SqliteEventStore extends EventStore {
   }
 
   @override
-  Future<void> add(Event event) async {
+  Future<void> add(E event) async {
     await super.add(event);
     db.execute(
       'INSERT OR REPLACE INTO events (id, type, data, version) VALUES (?, ?, ?, ?)',
@@ -54,7 +55,7 @@ class SqliteEventStore extends EventStore {
   }
 
   @override
-  Future<void> addAll(Iterable<Event> events) async {
+  Future<void> addAll(Iterable<E> events) async {
     await super.addAll(events);
     final stmt = db.prepare(
       'INSERT OR REPLACE INTO events (id, type, data, version) VALUES (?, ?, ?, ?)',
@@ -87,20 +88,20 @@ class SqliteEventStore extends EventStore {
   String get _eventColumns => 'id, type, $_selectDataClause, version';
 
   @override
-  Future<List<Event>> getAll() async {
+  Future<List<E>> getAll() async {
     // TODO: should we get a correct global order by hlc?
     final result = db.select("SELECT $_eventColumns FROM events");
-    return result.map(_eventFromRow).toList();
+    return result.map(_eventFromRow).map(parseEvent).toList();
   }
 
   @override
-  Future<Event?> getById(String id) async {
+  Future<E?> getById(String id) async {
     final result = db.select("SELECT $_eventColumns FROM events WHERE id = ?", [
       id,
     ]);
     if (result.isEmpty) return null;
     final row = result.first;
-    return _eventFromRow(row);
+    return parseEvent(_eventFromRow(row));
   }
 
   @override

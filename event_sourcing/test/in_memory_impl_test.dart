@@ -5,7 +5,7 @@ void main() {
   group('InMemoryEventStore', () {
     late InMemoryEventStore store;
     setUp(() {
-      store = InMemoryEventStore((_) {});
+      store = InMemoryEventStore((_) {}, (e) => e);
     });
 
     test('add and getAll', () async {
@@ -111,8 +111,8 @@ void main() {
     });
 
     test('sync between two stores using set difference', () async {
-      final storeA = InMemoryEventStore((_) {});
-      final storeB = InMemoryEventStore((_) {});
+      final storeA = InMemoryEventStore((_) {}, (e) => e);
+      final storeB = InMemoryEventStore((_) {}, (e) => e);
 
       // Add events to storeA
       final eventA1 = Event(id: Hlc.now('A'), type: 'A1', data: {'val': 1});
@@ -142,6 +142,58 @@ void main() {
       final idsSyncedB = syncedB.map((e) => e.id).toSet();
       expect(idsSyncedA, equals(idsSyncedB));
       expect(idsSyncedA, containsAll([eventA1.id, eventA2.id, eventB1.id]));
+    });
+
+    test('restoreToEvent replays up to a specific event', () async {
+      final store = InMemoryEventStore((_) {}, (e) => e);
+      var hlc = Hlc.now('A');
+      final event1 = Event(
+        id: hlc = hlc.increment(),
+        type: 'A',
+        data: {'val': 1},
+      );
+      final event2 = Event(
+        id: hlc = hlc.increment(),
+        type: 'B',
+        data: {'val': 2},
+      );
+      final event3 = Event(
+        id: hlc = hlc.increment(),
+        type: 'C',
+        data: {'val': 3},
+      );
+      await store.addAll([event1, event2, event3]);
+
+      // Restore to event2 (should only replay event1 and event2)
+      var replayed = <Event>[];
+      final restoreStore = InMemoryEventStore(replayed.add, (e) => e);
+      final allEvents = await store.getAll();
+      await restoreStore.addAll(allEvents);
+      replayed.clear();
+      await restoreStore.restoreToEvent(event2);
+      // Only event1 and event2 should be replayed
+      expect(replayed.length, 2);
+      expect(replayed[0].type, 'A');
+      expect(replayed[1].type, 'B');
+    });
+
+    test('restoreToEvent with unknown event replays all events', () async {
+      final store = InMemoryEventStore((_) {}, (e) => e);
+      final event1 = Event(id: Hlc.now('A'), type: 'A', data: {'val': 1});
+      final event2 = Event(id: Hlc.now('A'), type: 'B', data: {'val': 2});
+      await store.addAll([event1, event2]);
+
+      var replayed = <Event>[];
+      final restoreStore = InMemoryEventStore(replayed.add, (e) => e);
+      final allEvents = await store.getAll();
+      await restoreStore.addAll(allEvents);
+      replayed.clear();
+      final unknownEvent = Event(id: Hlc.now('unknown'), type: 'X', data: {});
+      await restoreStore.restoreToEvent(unknownEvent);
+      // All events should be replayed if event not found
+      expect(replayed.length, 2);
+      expect(replayed[0].type, 'A');
+      expect(replayed[1].type, 'B');
     });
   });
 }

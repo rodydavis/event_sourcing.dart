@@ -37,11 +37,9 @@ void main() {
 
     test('Create, update, and delete document', () async {
       final collectionId = 'col2';
+      final documentId = 'doc1';
       await store.eventStore.add(CreateCollectionEvent(collectionId, 'Docs'));
-      await store.eventStore.add(CreateDocumentEvent(collectionId));
-      final events = await store.eventStore.getAll();
-      final docEvent = events.whereType<CreateDocumentEvent>().first;
-      final documentId = docEvent.id.toString();
+      await store.eventStore.add(CreateDocumentEvent(collectionId, documentId));
       expect(store.getDocument(collectionId, documentId)?.data, {});
 
       await store.eventStore.add(
@@ -56,13 +54,11 @@ void main() {
 
     test('Deleting a collection deletes its documents', () async {
       final collectionId = 'col3';
+      final documentId = 'doc1';
       await store.eventStore.add(
         CreateCollectionEvent(collectionId, 'Cascade'),
       );
-      await store.eventStore.add(CreateDocumentEvent(collectionId));
-      final events = await store.eventStore.getAll();
-      final docEvent = events.whereType<CreateDocumentEvent>().first;
-      final documentId = docEvent.id.toString();
+      await store.eventStore.add(CreateDocumentEvent(collectionId, documentId));
       expect(store.getDocument(collectionId, documentId)?.data, isNotNull);
 
       await store.eventStore.add(DeleteCollectionEvent(collectionId));
@@ -82,29 +78,27 @@ void main() {
 
     test('Create multiple documents in a collection', () async {
       final collectionId = 'col5';
+      final documentId = 'doc1';
+      final documentId2 = 'doc2';
       await store.eventStore.add(
         CreateCollectionEvent(collectionId, 'MultiDocs'),
       );
-      await store.eventStore.add(CreateDocumentEvent(collectionId));
-      await store.eventStore.add(CreateDocumentEvent(collectionId));
-      final events = await store.eventStore.getAll();
-      final docEvents = events.whereType<CreateDocumentEvent>().toList();
-      expect(docEvents.length, 2);
-      for (final docEvent in docEvents) {
-        final documentId = docEvent.id.toString();
-        expect(store.getDocument(collectionId, documentId)?.data, {});
-      }
+      await store.eventStore.add(CreateDocumentEvent(collectionId, documentId));
+      await store.eventStore.add(CreateDocumentEvent(collectionId, documentId2));
+      final docs = await store.getDocuments(collectionId);
+      expect(docs.length, 2);
+      expect(docs.first.id, documentId);
+      expect(docs.last.id, documentId2);
+      expect(store.getDocument(collectionId, documentId)?.data, {});
     });
 
     test('Update document with empty patch does not change data', () async {
       final collectionId = 'col6';
+      final documentId = 'doc1';
       await store.eventStore.add(
         CreateCollectionEvent(collectionId, 'EmptyPatch'),
       );
-      await store.eventStore.add(CreateDocumentEvent(collectionId));
-      final events = await store.eventStore.getAll();
-      final docEvent = events.whereType<CreateDocumentEvent>().first;
-      final documentId = docEvent.id.toString();
+      await store.eventStore.add(CreateDocumentEvent(collectionId, documentId));
       await store.eventStore.add(
         PatchDocumentEvent(collectionId, documentId, {}),
       );
@@ -130,13 +124,13 @@ void main() {
       'PatchDocumentEvent merges fields, SetDocumentEvent replaces data',
       () async {
         final collectionId = 'col_patch_set';
+        final documentId = 'doc1';
         await store.eventStore.add(
           CreateCollectionEvent(collectionId, 'PatchSet'),
         );
-        await store.eventStore.add(CreateDocumentEvent(collectionId));
-        final events = await store.eventStore.getAll();
-        final docEvent = events.whereType<CreateDocumentEvent>().first;
-        final documentId = docEvent.id.toString();
+        await store.eventStore.add(
+          CreateDocumentEvent(collectionId, documentId),
+        );
 
         // Patch: add foo
         await store.eventStore.add(
@@ -176,15 +170,12 @@ void main() {
 
     test('DuplicateDocumentEvent duplicates a document', () async {
       final collectionId = 'col_dup';
+      final documentId = 'doc1';
       await store.eventStore.add(
         CreateCollectionEvent(collectionId, 'DupTest'),
       );
-      await store.eventStore.add(CreateDocumentEvent(collectionId));
-      final events = await store.eventStore.getAll();
-      final docEvent = events.whereType<CreateDocumentEvent>().first;
-      final documentId = docEvent.id.toString();
       await store.eventStore.add(
-        PatchDocumentEvent(collectionId, documentId, {'foo': 'bar'}),
+        CreateDocumentEvent(collectionId, documentId, {'foo': 'bar'}),
       );
       // Duplicate the document
       final newDocumentId = 'dup_id';

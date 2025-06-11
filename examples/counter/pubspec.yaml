@@ -13,6 +13,8 @@ dependencies:
     path: ../../event_sourcing
   signals: ^6.0.2
   timeago: ^3.7.1
+  path_provider: ^2.1.5
+  file: ^7.0.1
 
 dev_dependencies:
   flutter_test:

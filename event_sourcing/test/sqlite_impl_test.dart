@@ -14,7 +14,7 @@ void main() {
       tempFile = File('test_event_store.sqlite');
       if (tempFile.existsSync()) tempFile.deleteSync();
       db = sqlite3.open(tempFile.path);
-      store = SqliteEventStore(db, (_) {});
+      store = SqliteEventStore(db, (_) {}, (e) => e);
     });
 
     tearDown(() async {
@@ -131,7 +131,7 @@ void main() {
       // Dispose the store (but not the db file)
       await store.dispose();
       // Reopen the store with the same db file
-      final reopenedStore = SqliteEventStore(db, (_) {});
+      final reopenedStore = SqliteEventStore(db, (_) {}, (e) => e);
       final allEvents = await reopenedStore.getAll();
       expect(allEvents.length, 2);
       expect(allEvents[0].type, 'persist1');

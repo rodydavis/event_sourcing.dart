@@ -8,7 +8,79 @@ import 'events.dart';
 import 'hooks.dart';
 
 class PosStore {
-  late final EventStore eventStore = InMemoryEventStore(onEvent);
+  late final EventStore eventStore = InMemoryEventStore(
+    onEvent,
+    (event) => switch (event.type) {
+      'ADD_CUSTOMER' => AddCustomerEvent(
+        event.data['customerId'] as int,
+        event.data['name'] as String,
+      ),
+      'UPDATE_CUSTOMER' => UpdateCustomerEvent(
+        event.data['customerId'] as int,
+        event.data['name'] as String,
+      ),
+      'DELETE_CUSTOMER' => DeleteCustomerEvent(
+        event.data['customerId'] as int,
+      ),
+      'ADD_PRODUCT' => AddProductEvent(
+        event.data['productId'] as int,
+        event.data['name'] as String,
+        (event.data['price'] as num).toDouble(),
+      ),
+      'UPDATE_PRODUCT_NAME' => UpdateProductNameEvent(
+        event.data['productId'] as int,
+        event.data['name'] as String,
+      ),
+      'UPDATE_PRODUCT_PRICE' => UpdateProductPriceEvent(
+        event.data['productId'] as int,
+        (event.data['price'] as num).toDouble(),
+      ),
+      'DELETE_PRODUCT' => DeleteProductEvent(
+        event.data['productId'] as int,
+      ),
+      'SET_PRODUCT_INVENTORY' => SetProductInventoryEvent(
+        event.data['productId'] as int,
+        event.data['quantity'] as int,
+      ),
+      'START_ORDER' => StartOrderEvent(
+        event.data['orderId'] as int,
+        event.data['customerId'] as int,
+      ),
+      'ADD_PRODUCT_TO_ORDER' => AddProductToOrderEvent(
+        event.data['orderId'] as int,
+        event.data['productId'] as int,
+        event.data['quantity'] as int,
+      ),
+      'REMOVE_PRODUCT_FROM_ORDER' => RemoveProductFromOrderEvent(
+        event.data['orderId'] as int,
+        event.data['productId'] as int,
+      ),
+      'INCREASE_PRODUCT_QUANTITY' => IncreaseProductQuantityEvent(
+        event.data['orderId'] as int,
+        event.data['productId'] as int,
+        event.data['quantity'] as int,
+      ),
+      'DECREASE_PRODUCT_QUANTITY' => DecreaseProductQuantityEvent(
+        event.data['orderId'] as int,
+        event.data['productId'] as int,
+        event.data['quantity'] as int,
+      ),
+      'UPDATE_CUSTOMER_BALANCE' => UpdateCustomerBalanceEvent(
+        event.data['customerId'] as int,
+        (event.data['balance'] as num).toDouble(),
+      ),
+      'COMPLETE_ORDER' => CompleteOrderEvent(
+        event.data['orderId'] as int,
+      ),
+      'CANCEL_ORDER' => CancelOrderEvent(
+        event.data['orderId'] as int,
+      ),
+      'REFUND_ORDER' => RefundOrderEvent(
+        event.data['orderId'] as int,
+      ),
+      _ => throw ArgumentError('Unknown event type: ${event.type}'),
+    },
+  );
   final CommonDatabase db;
 
   PosStore(this.db);
